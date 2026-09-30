@@ -1,13 +1,12 @@
 plugins {
-   id 'java'
-   id 'application'
-   id 'org.ajoberstar.git-publish' version '4.2.0'
+    id 'java'
+    id 'application'
+    id 'org.ajoberstar.git-publish' version '4.2.0'
 }
 
 repositories {
     mavenCentral()
 }
-
 
 java {
     sourceCompatibility = JavaVersion.toVersion(11)
@@ -25,10 +24,38 @@ tasks.withType(Test) {
     ignoreFailures = true
     testLogging {
         events "passed", "skipped", "failed"
-        }
+    }
 }
 
 application { //Allows  ./gradlew run --args=path-to-test-data
     mainClass = 'edu.odu.cs.MostCommonWords'
 }
 
+tasks.register('copyHtml', Copy) {
+    from 'src/main/html'
+    into 'build/reports'
+}
+
+tasks.register('copyDocs', Copy) {
+    dependsOn 'javadoc'
+    from 'build/docs'
+    into 'build/reports'
+}
+
+tasks.register('reports') {
+    dependsOn 'build', 'javadoc', 'copyHtml', 'copyDocs'
+}
+
+gitPublish {
+    repoUri = 'git@github.com:ODU-CS351-F26/CS351--exercise-documentation--BrandonDavis-alt.git'
+    branch = 'gh-pages'
+    contents {
+        from 'build/reports'
+    }
+}
+
+gitPublishCopy.dependsOn 'reports'
+
+tasks.register('deployReports') {
+    dependsOn 'reports', 'gitPublishPush'
+}
